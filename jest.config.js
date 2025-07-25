@@ -1,10 +1,4 @@
-/**
- * For a detailed explanation regarding each configuration property, visit:
- * https://jestjs.io/docs/configuration
- */
-
-/** @type {import('jest').Config} */
-const config = {
+module.exports = {
   collectCoverageFrom: [
     '<rootDir>/src/**/*.ts',
     '!<rootDir>/src/main/**',
@@ -19,12 +13,11 @@ const config = {
   testMatch: ['**/*.spec.ts'],
   roots: [
     '<rootDir>/src',
+    '<rootDir>/tests'
   ],
   transform: {
     '\\.ts$': 'ts-jest'
   },
   clearMocks: true,
   setupFiles: ['dotenv/config']
-};
-
-module.exports = config;
+}
