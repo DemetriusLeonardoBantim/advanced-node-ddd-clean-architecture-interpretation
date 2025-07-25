@@ -1,4 +1,4 @@
-import { addAlias } from "module-alias";
-import * as path from "node:path";
+import { addAlias } from 'module-alias'
+import * as path from 'node:path'
 
-addAlias("@", path.resolve("dist"));
+addAlias('@', path.resolve('dist'))
