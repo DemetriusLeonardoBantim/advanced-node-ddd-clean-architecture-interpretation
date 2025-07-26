@@ -2,6 +2,7 @@ import { type LoadFacebookUserApi } from '@/data/contracts/apis'
 import { AuthenticationError } from '@/domain/errors'
 import { type FacebookAuthentication } from '@/domain/features'
 import { type LoadUserAccountRepository } from '@/data/contracts/repos'
+
 export class FacebookAuthenticationService {
   constructor (
     private readonly LoadFacebookUserApi: LoadFacebookUserApi,
