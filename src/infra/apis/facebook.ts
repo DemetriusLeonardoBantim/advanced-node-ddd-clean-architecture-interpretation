@@ -1,58 +1,53 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { type LoadFacebookUserApi } from '@/data/contracts/apis'
-import { type HttpGetClient } from '../http/client'
+import { type HttpGetClient } from '../http'
 
-type AppToken = {
-  access_token: string
-}
+type AppToken = { access_token: string }
+type DebugToken = { data: { user_id: string } }
+type UserInfo = { id: string, name: string, email: string }
+type Input = any
+type Output = any
 
 export class FacebookApi implements LoadFacebookUserApi {
   private readonly baseUrl = 'https://graph.facebook.com'
+
   constructor(
     private readonly httpClient: HttpGetClient,
-    private readonly client_id: string,
-    private readonly client_secret: string
-
+    private readonly clientId: string,
+    private readonly clientSecret: string
   ) { }
 
-  async loadUser(params: LoadFacebookUserApi.Params): Promise<LoadFacebookUserApi.Result> {
-    const appToken = await this.getAppToken()
-
-    const debugToken = await this.getDebugToken(appToken.access_token, params.token)
-
-    const userrInfo = await this.getUserInfo(debugToken.data.user_id, params.token)
-
-    return {
-      facebookId: userrInfo.id,
-      name: userrInfo.name,
-      email: userrInfo.email
-    }
+  async loadUser({ token }: Input): Promise<Output> {
+    return this.getUserInfo(token)
+      .then(({ id, name, email }) => ({ facebookId: id, name, email }))
+      .catch(() => undefined)
   }
 
   private async getAppToken(): Promise<AppToken> {
-    return await this.httpClient.get({
+    return this.httpClient.get({
       url: `${this.baseUrl}/oauth/access_token`,
       params: {
-        client_id: this.client_id,
-        client_secret: this.client_secret,
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
         grant_type: 'client_credentials'
       }
     })
   }
 
-  private async getDebugToken(appToken: string, clientToken: string): Promise<any> {
-    await this.httpClient.get({
+  private async getDebugToken(clientToken: string): Promise<DebugToken> {
+    const appToken = await this.getAppToken()
+    return this.httpClient.get({
       url: `${this.baseUrl}/debug_token`,
       params: {
-        access_token: appToken,
+        access_token: appToken.access_token,
         input_token: clientToken
       }
     })
   }
 
-  private async getUserInfo(userId: string, clientToken: string): Promise<any> {
-    return await this.httpClient.get({
-      url: `${this.baseUrl}/${userId}`,
+  private async getUserInfo(clientToken: any): Promise<UserInfo> {
+    const debugToken = await this.getDebugToken(clientToken)
+    return this.httpClient.get({
+      url: `${this.baseUrl}/${debugToken.data.user_id}`,
       params: {
         fields: ['id', 'name', 'email'].join(','),
         access_token: clientToken
