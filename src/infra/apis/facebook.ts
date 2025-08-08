@@ -11,14 +11,7 @@ export class FacebookApi implements LoadFacebookUserApi {
   ) { }
 
   async loadUser(params: LoadFacebookUserApi.Params): Promise<LoadFacebookUserApi.Result> {
-    const appToken = await this.httpClient.get({
-      url: `${this.baseUrl}/oauth/access_token`,
-      params: {
-        client_id: this.client_id,
-        client_secret: this.client_secret,
-        grant_type: 'client_credentials'
-      }
-    })
+    const appToken = await this.getAppToken()
 
     const debugToken = await this.httpClient.get({
       url: `${this.baseUrl}/debug_token`,
@@ -41,5 +34,16 @@ export class FacebookApi implements LoadFacebookUserApi {
       name: userrInfo.name,
       email: userrInfo.email
     }
+  }
+
+  private async getAppToken(): Promise<any> {
+    return await this.httpClient.get({
+      url: `${this.baseUrl}/oauth/access_token`,
+      params: {
+        client_id: this.client_id,
+        client_secret: this.client_secret,
+        grant_type: 'client_credentials'
+      }
+    })
   }
 }
