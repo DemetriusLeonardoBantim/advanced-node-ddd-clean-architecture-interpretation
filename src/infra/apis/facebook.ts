@@ -2,6 +2,10 @@
 import { type LoadFacebookUserApi } from '@/data/contracts/apis'
 import { type HttpGetClient } from '../http/client'
 
+type AppToken = {
+  access_token: string
+}
+
 export class FacebookApi implements LoadFacebookUserApi {
   private readonly baseUrl = 'https://graph.facebook.com'
   constructor(
@@ -25,7 +29,7 @@ export class FacebookApi implements LoadFacebookUserApi {
     }
   }
 
-  private async getAppToken(): Promise<any> {
+  private async getAppToken(): Promise<AppToken> {
     return await this.httpClient.get({
       url: `${this.baseUrl}/oauth/access_token`,
       params: {
