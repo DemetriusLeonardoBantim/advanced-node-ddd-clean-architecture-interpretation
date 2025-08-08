@@ -17,6 +17,7 @@ export class FacebookApi implements LoadFacebookUserApi {
     const debugToken = await this.getDebugToken(appToken.access_token, params.token)
 
     const userrInfo = await this.getUserInfo(debugToken.data.user_id, params.token)
+
     return {
       facebookId: userrInfo.id,
       name: userrInfo.name,
