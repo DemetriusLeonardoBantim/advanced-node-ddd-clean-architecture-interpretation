@@ -2,10 +2,11 @@ import { type LoadFacebookUserApi } from '@/data/contracts/apis'
 import { mock } from 'jest-mock-extended'
 
 class FacebookApi {
+  private readonly baseUrl = 'https://graph.facebook.com'
   constructor(private readonly httpClient: HttpGetClient) { }
   async loadUser(params: LoadFacebookUserApi.Params): Promise<void> {
     await this.httpClient.get({
-      url: 'https://graph.facebook.com/oauth/access_token'
+      url: `${this.baseUrl}/oauth/access_token`
     })
   }
 }
