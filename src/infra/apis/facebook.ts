@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { type LoadFacebookUserApi } from '@/data/contracts/apis'
 import { type HttpGetClient } from '../http/client'
 
@@ -13,13 +14,7 @@ export class FacebookApi implements LoadFacebookUserApi {
   async loadUser(params: LoadFacebookUserApi.Params): Promise<LoadFacebookUserApi.Result> {
     const appToken = await this.getAppToken()
 
-    const debugToken = await this.httpClient.get({
-      url: `${this.baseUrl}/debug_token`,
-      params: {
-        access_token: appToken.access_token,
-        input_token: params.token
-      }
-    })
+    const debugToken = await this.getDebugToken(appToken.access_token, params.token)
 
     const userrInfo = await this.httpClient.get({
       url: `${this.baseUrl}/${debugToken.data.user_id}`,
@@ -43,6 +38,16 @@ export class FacebookApi implements LoadFacebookUserApi {
         client_id: this.client_id,
         client_secret: this.client_secret,
         grant_type: 'client_credentials'
+      }
+    })
+  }
+
+  private async getDebugToken(appToken: string, clientToken: string): Promise<any> {
+    await this.httpClient.get({
+      url: `${this.baseUrl}/debug_token`,
+      params: {
+        access_token: appToken,
+        input_token: clientToken
       }
     })
   }
