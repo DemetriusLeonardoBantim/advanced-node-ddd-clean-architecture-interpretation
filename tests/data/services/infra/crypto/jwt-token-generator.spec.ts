@@ -36,4 +36,16 @@ describe("JwtTokenGenerator", () => {
       }
     );
   });
+
+  it("Should return a token", async () => {
+    await sut.generateToken({ key: "any_key", expirationInMs: 1000 });
+
+    expect(fakeJwt.sign).toHaveBeenCalledWith(
+      { key: "any_key" },
+      "any_secret",
+      {
+        expiresIn: 1,
+      }
+    );
+  });
 });
