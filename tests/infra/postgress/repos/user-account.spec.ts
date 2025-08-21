@@ -1,19 +1,27 @@
 import { type LoadUserAccountRepository } from "@/data/contracts/repos";
 import { newDb } from "pg-mem";
-import { Column, Entity, getRepository, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  type DataSource,
+  type Repository,
+} from "typeorm";
 
 class PgUserAccountRepository implements LoadUserAccountRepository {
+  constructor(private readonly repo: Repository<PgUser>) {}
+
   async load(
     params: LoadUserAccountRepository.Params
-  ): LoadUserAccountRepository.Result {
-    const pgUserRepo = getRepository(PgUser);
+  ): Promise<LoadUserAccountRepository.Result> {
+    const pgUser = await this.repo.findOne({
+      where: { email: params.email },
+    });
 
-    const pgUser = await pgUserRepo.findOne({ email: params.email });
-
-    if (pgUser !== undefined) {
+    if (pgUser !== undefined && pgUser != null) {
       return {
-        id: pgUser.id?.toString(),
-        name: pgUser?.name,
+        id: pgUser.id.toString(),
+        name: pgUser.name,
       };
     }
   }
@@ -35,21 +43,43 @@ class PgUser {
 }
 
 describe("PgUserAccountRepository", () => {
-  describe("load", () => {
-    it("Should return an account if email exists ", async () => {
-      const db = newDb();
-      const connection = await db.adapters.createTypeormConnection({
-        type: "postgres",
-        entities: [PgUser],
-      });
+  let dataSource: DataSource;
+  let pgUserRepo: Repository<PgUser>;
 
-      await connection.synchonize();
-      const pgUserRepo = getRepository(PgUser);
-      await pgUserRepo.save({ email: "" });
-      const sut = new PgUserAccountRepository();
+  beforeEach(async () => {
+    const db = newDb();
+    dataSource = await db.adapters.createTypeormDataSource({
+      type: "postgres",
+      entities: [PgUser],
+    });
+
+    await dataSource.initialize();
+    await dataSource.synchronize();
+
+    pgUserRepo = dataSource.getRepository(PgUser);
+  });
+
+  afterEach(async () => {
+    await dataSource.destroy();
+  });
+
+  describe("load", () => {
+    it("Should return an account if email exists", async () => {
+      await pgUserRepo.save({ email: "existing_email" });
+      const sut = new PgUserAccountRepository(pgUserRepo);
 
       const account = await sut.load({ email: "existing_email" });
-      expect(account).toEqual({ id: "1" });
+
+      expect(account).toEqual({ id: "1", name: null });
+    });
+
+    it("Should return undefined if email does not exists", async () => {
+      await pgUserRepo.save({ email: "other_email" });
+      const sut = new PgUserAccountRepository(pgUserRepo);
+
+      const account = await sut.load({ email: "non_existing_email" });
+
+      expect(account).toBeUndefined();
     });
   });
 });
